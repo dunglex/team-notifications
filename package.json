@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "main": "main.ts",
   "scripts": {
-    "run": "node main.ts"
+    "run": "node main.js"
   },
   "author": "",
   "license": "ISC",
