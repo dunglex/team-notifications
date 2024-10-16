@@ -1,98 +1,64 @@
-require("dotenv").config();
-const {
-  CloudAdapter,
-  ConfigurationServiceClientCredentialFactory,
-  MemoryStorage,
-  ConversationState,
-  UserState,
-} = require("botbuilder");
-const http = require("http");
-const { TeamsBot } = require("./team-bot");
+require('dotenv').config();
+const http = require('http');
+const url = require('url');
+const axios = require('axios'); // Use axios for HTTP requests
+const { Size } = require('adaptivecards');
 
-console.log("Starting application...");
+const powerAutomateUrl = process.env.POWER_AUTOMATE_URL; // Set your Power Automate URL in environment variables
 
-// Check for required environment variables
-if (
-  !process.env.MicrosoftAppId ||
-  !process.env.MicrosoftAppPassword ||
-  !process.env.MicrosoftAppType ||
-  !process.env.MicrosoftAppTenantId
-) {
-  console.error("Required environment variables are missing");
-  process.exit(1);
-}
-console.log("MicrosoftAppId: " + process.env.MicrosoftAppId);
-console.log("MicrosoftAppPassword: " + process.env.MicrosoftAppPassword);
-console.log("MicrosoftAppType: " + process.env.MicrosoftAppType);
-console.log("MicrosoftAppTenantId: " + process.env.MicrosoftAppTenantId);
-console.log("Environment variables loaded successfully");
-
-// Create adapter
-const adapter = new CloudAdapter(
-  new ConfigurationServiceClientCredentialFactory({
-    MicrosoftAppId: process.env.MicrosoftAppId,
-    MicrosoftAppPassword: process.env.MicrosoftAppPassword,
-    MicrosoftAppType: process.env.MicrosoftAppType,
-    MicrosoftAppTenantId: process.env.MicrosoftAppTenantId,
-  })
-);
-console.log("CloudAdapter created successfully");
-
-// Create conversation and user state
-const memoryStorage = new MemoryStorage();
-const conversationState = new ConversationState(memoryStorage);
-const userState = new UserState(memoryStorage);
-console.log("ConversationState and UserState created successfully");
-
-// Create bot
-const bot = new TeamsBot(conversationState, userState);
-console.log("TeamsBot created successfully");
-
-// Function to handle /api/messages endpoint
-const handleApiMessages = (req, res) => {
-  const startTime = Date.now();
-  const { method, url, headers } = req;
-  const ip = req.socket.remoteAddress;
-  let body = "";
-
-  req.on("data", (chunk) => {
-    body += chunk.toString();
-  });
-
-  req.on("end", () => {
-    const duration = Date.now() - startTime;
-    console.log(
-      `Request: ${method} ${url} | Time: ${new Date(
-        startTime
-      ).toISOString()} | Origin: ${
-        headers.origin || "N/A"
-      } | IP: ${ip} | Duration: ${duration}ms | Body: ${body}`
-    );
-
-    req.body = JSON.parse(body);
-    adapter
-      .processActivity(req, res, async (context) => {
-        await bot.run(context);
-      })
-      .catch((err) => {
-        console.error(err);
-        res.statusCode = 500;
-        res.end("Internal Server Error");
-      });
-  });
-};
-console.log("API message handler created successfully");
-
-// Create an HTTP server
 const server = http.createServer((req, res) => {
-  if (req.method === "POST" && req.url === "/api/messages") {
-    handleApiMessages(req, res);
+  const parsedUrl = url.parse(req.url, true);
+
+  if (req.method === 'POST' && parsedUrl.pathname === '/api/messages') {
+    let body = '';
+
+    req.on('data', chunk => {
+      body += chunk.toString();
+    });
+
+    req.on('end', async () => {
+      try {
+        const message = JSON.parse(body);
+        const teamMessage = {
+          type: "AdaptiveCard",
+          attachments: [
+            {
+              contentType: "application/vnd.microsoft.card.adaptive",
+              content: {
+                $schema: "http://adaptivecards.io/schemas/adaptive-card.json",
+                type: "AdaptiveCard",
+                version: "1.0",
+                body: [
+                  {
+                    type: "TextBlock",
+                    text: "For Samples and Templates, see [https://adaptivecards.io/samples](https://adaptivecards.io/samples)",
+                    size: "large"
+                  }
+                ]
+              }
+            }
+          ]
+        };
+
+        console.log(JSON.stringify(teamMessage, null, 2));
+        // Send message to Power Automate
+        await axios.post(powerAutomateUrl, teamMessage);
+
+        res.statusCode = 200;
+        res.end('Message received and processed');
+      } catch (error) {
+        console.error('Error processing message:', error);
+        res.statusCode = 500;
+        res.end('Internal Server Error');
+      }
+    });
   } else {
     res.statusCode = 404;
-    res.end("Not Found");
+    res.end('Not Found');
   }
 });
-console.log("HTTP server created successfully");
+
+console.log('HTTP server created successfully');
 
 // Start the server
 server.listen(process.env.PORT || 3978, () => {
