@@ -21,6 +21,10 @@ if (
   console.error("Required environment variables are missing");
   process.exit(1);
 }
+console.log("MicrosoftAppId: " + process.env.MicrosoftAppId);
+console.log("MicrosoftAppPassword: " + process.env.MicrosoftAppPassword);
+console.log("MicrosoftAppType: " + process.env.MicrosoftAppType);
+console.log("MicrosoftAppTenantId: " + process.env.MicrosoftAppTenantId);
 console.log("Environment variables loaded successfully");
 
 // Create adapter
