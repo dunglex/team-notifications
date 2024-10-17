@@ -39,7 +39,7 @@ function onPrCreated(req, res) {
 
       // Extract the information from the message
       let srcBranch = message.resource.sourceRefName.replace("refs/heads/", "");
-      let targetBranch = message.resource.targetRefName.replace("refs/heads/","");
+      let targetBranch = message.resource.targetRefName.replace("refs/heads/", "");
       let repository = message.resource.repository.name;
       let author = message.resource.createdBy.displayName;
       let url = `${message.resource.repository.webUrl}/pullrequest/${message.resource.pullRequestId}`;
@@ -54,9 +54,7 @@ function onPrCreated(req, res) {
       if (jiraUrl == null) {
         let jiraPattern = /HRDIGI-\d+/;
         if (jiraPattern.test(srcBranch)) {
-          jiraUrl = `https://sd.homecredit.vn/browse/${
-            srcBranch.match(jiraPattern)[0]
-          }`;
+          jiraUrl = `https://sd.homecredit.vn/browse/${srcBranch.match(jiraPattern)[0]}`;
         }
       }
 
@@ -144,8 +142,5 @@ const server = http.createServer((req, res) => {
 // Start the server
 server.listen(process.env.PORT || 3978, () => {
   console.log(`Server started on port ${server.address().port}`);
-  setInterval(
-    selfHealthCheck,
-    parseInt(process.env.HEALTH_CHECK_INTERVAL_SECONDS) * 1000 || 30000
-  );
+  setInterval(selfHealthCheck, parseInt(process.env.HEALTH_CHECK_INTERVAL_SECONDS) * 1000 || 30000);
 });
