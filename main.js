@@ -38,6 +38,10 @@ function onPrCreated(req, res) {
       console.log("Received message: ", JSON.stringify(message));
 
       // Extract the information from the message
+      let srcBranch = message.resource.sourceRefName.replace("refs/heads/", "");
+      let targetBranch = message.resource.targetRefName.replace("refs/heads/","");
+      let repository = message.resource.repository.name;
+      let author = message.resource.createdBy.displayName;
       let url = `${message.resource.repository.webUrl}/pullrequest/${message.resource.pullRequestId}`;
       let jiraUrl = null;
       if (message.resource && message.resource.description) {
@@ -55,10 +59,6 @@ function onPrCreated(req, res) {
           }`;
         }
       }
-      let srcBranch = message.resource.sourceRefName.replace("refs/heads/", "");
-      let targetBranch = message.resource.targetRefName.replace("refs/heads/","");
-      let repository = message.resource.repository.name;
-      let author = message.resource.createdBy.displayName;
 
       // Prepare the message to send to the webhook
       const webhookRequestBody = JSON.stringify({
