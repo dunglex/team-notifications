@@ -35,7 +35,7 @@ function onPrCreated(req, res) {
     try {
       // Parse the request body
       const message = JSON.parse(reqBody);
-      console.log('Received message:', message);
+      console.log('Received message: ', JSON.stringify(message));
 
       // Extract the information from the message
       let url = `${message.resource.repository.webUrl }/pullrequest/${message.resource.pullRequestId}`;
@@ -51,7 +51,7 @@ function onPrCreated(req, res) {
           jiraUrl = `https://sd.homecredit.vn/browse/${srcBranch.match(jiraPattern)[0]}`;
         }
       }
-      
+
       // Prepare the message to send to the webhook
       const webhookRequestBody = JSON.stringify({
         "type": "message",
