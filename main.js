@@ -1,7 +1,21 @@
-require('dotenv').config();
 const http = require('http');
 const https = require('https');
 const url = require('url');
+const fs = require('fs');
+const path = require('path');
+
+function loadEnv(filePath) {
+  const envPath = path.resolve(filePath);
+  const envContent = fs.readFileSync(envPath, 'utf-8');
+  const lines = envContent.split('\n');
+
+  lines.forEach(line => {
+    const [key, value] = line.split('=');
+    if (key && value) {
+      process.env[key.trim()] = value.trim();
+    }
+  });
+}
 
 // Function to handle the POST request when a pull request is created
 function onPrCreated(req, res) {
@@ -88,6 +102,11 @@ function selfHealthCheck() {
     // TODO: send a notification to the webhook if the health check fails
 
   });
+}
+
+// If .env file exists, load it
+if (fs.existsSync('.env')) {
+  loadEnv('.env');
 }
 
 // Create the web server
