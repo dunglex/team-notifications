@@ -80,7 +80,7 @@ function onPrCreated(req, res) {
 
 // Function to perform self health check
 function selfHealthCheck() {
-  https.get(process.env.HEATH_CHECK_URL, (res) => {
+  https.get(process.env.HEALTH_CHECK_URL, (res) => {
     // do not thing
   }).on('error', (e) => {
     console.error(`Health check failed: ${e.message}`);
@@ -107,5 +107,5 @@ const server = http.createServer((req, res) => {
 // Start the server
 server.listen(process.env.PORT || 3978, () => {
   console.log(`Server started on port ${server.address().port}`);
-  setInterval(selfHealthCheck, process.env.HEALTH_CHECK_INTERVAL || 30000);
+  setInterval(selfHealthCheck, parseInt(process.env.HEALTH_CHECK_INTERVAL_SECONDS) * 1000 || 30000);
 });
