@@ -84,6 +84,9 @@ const server = http.createServer((req, res) => {
 
   if (req.method === 'POST' && parsedUrl.pathname === '/pr/created') {
     onPrCreated(req, res);
+  } else if (req.method === 'GET' && parsedUrl.pathname === '/healthz') {
+    res.statusCode = 200;
+    res.end('Server is healthy');
   } else {
     res.statusCode = 404;
     res.end('Not Found');
