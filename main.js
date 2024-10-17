@@ -44,7 +44,15 @@ function onPrCreated(req, res) {
       let targetBranch = message.resource.targetRefName.replace('refs/heads/', '');
       let repository = message.resource.repository.name;
       let author = message.resource.createdBy.displayName;
-
+      // if jiraurl is null then take it from srcBranch if it starts with HRDIGI-xxx
+      if (jiraUrl == null) {
+        let jiraPattern = /HRDIGI-\d+/;
+        if (jiraPattern.test(srcBranch)) {
+          jiraUrl = `https://sd.homecredit.vn/browse/${srcBranch.match(jiraPattern)[0]}`;
+        }
+      }
+      
+      // Prepare the message to send to the webhook
       const webhookRequestBody = JSON.stringify({
         "type": "message",
         "attachments": [
