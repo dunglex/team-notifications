@@ -1,7 +1,7 @@
 {
   "name": "team-notifications",
   "version": "1.0.0",
-  "main": "main.ts",
+  "main": "main.js",
   "scripts": {
     "run": "node main.js"
   },
@@ -9,8 +9,6 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
-    "@slack/webhook": "^7.0.3",
-    "botbuilder": "^4.23.1",
     "dotenv": "^16.4.5"
   }
 }
