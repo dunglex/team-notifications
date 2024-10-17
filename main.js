@@ -18,13 +18,18 @@ function onPrCreated(req, res) {
 
   req.on('end', async () => {
     try {
+      // Parse the request body
       const message = JSON.parse(reqBody);
+      console.log('Received message:', message);
+
+      // Extract the information from the message
       let url = `${message.resource.repository.webUrl }/pullrequest/${message.resource.pullRequestId}`;
       let jiraUrl = (index = (description = message.resource.description).indexOf("https://sd.homecredit.vn")) != -1 ? description.substring(index) : null;
       let srcBranch = message.resource.sourceRefName.replace('refs/heads/', '');
       let targetBranch = message.resource.targetRefName.replace('refs/heads/', '');
       let repository = message.resource.repository.name;
       let author = message.resource.createdBy.displayName;
+
       const webhookRequestBody = JSON.stringify({
         "type": "message",
         "attachments": [
@@ -52,6 +57,8 @@ function onPrCreated(req, res) {
           }
         ]
       });
+
+      // Send the message to the webhook
       console.log('Sending message:', webhookRequestBody);
       await fetch(process.env.WEBHOOK_URL, {
         method: 'POST',

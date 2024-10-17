@@ -8,7 +8,7 @@
             "type": "TextBlock",
             "size": "Medium",
             "weight": "Bolder",
-            "text": "@{body('Parse_JSON')?['author']} has created new PR on @{body('Parse_JSON')?['repository']}"
+            "text": "@{body('Parse_JSON')?['author']} has created new PR for @{body('Parse_JSON')?['repository']}"
           },
           {
             "type": "ColumnSet",
