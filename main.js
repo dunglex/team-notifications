@@ -78,6 +78,17 @@ function onPrCreated(req, res) {
   });
 }
 
+// Function to perform self health check
+function selfHealthCheck() {
+  https.get(process.env.HEATH_CHECK_URL, (res) => {
+    // do not thing
+  }).on('error', (e) => {
+    console.error(`Health check failed: ${e.message}`);
+    // TODO: send a notification to the webhook if the health check fails
+
+  });
+}
+
 // Create the web server
 const server = http.createServer((req, res) => {
   const parsedUrl = url.parse(req.url, true);
@@ -96,4 +107,5 @@ const server = http.createServer((req, res) => {
 // Start the server
 server.listen(process.env.PORT || 3978, () => {
   console.log(`Server started on port ${server.address().port}`);
+  setInterval(selfHealthCheck, process.env.HEALTH_CHECK_INTERVAL || 30000);
 });
