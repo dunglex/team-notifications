@@ -4,6 +4,8 @@ const url = require("url");
 const fs = require("fs");
 const path = require("path");
 
+let healthCheckInterval;
+
 function loadEnv(filePath) {
   const envPath = path.resolve(filePath);
   const envContent = fs.readFileSync(envPath, "utf-8");
@@ -142,5 +144,10 @@ const server = http.createServer((req, res) => {
 // Start the server
 server.listen(process.env.PORT || 3978, () => {
   console.log(`Server started on port ${server.address().port}`);
-  setInterval(selfHealthCheck, parseInt(process.env.HEALTH_CHECK_INTERVAL_SECONDS) * 1000 || 30000);
+  healthCheckInterval = setInterval(selfHealthCheck, parseInt(process.env.HEALTH_CHECK_INTERVAL_SECONDS) * 1000 || 30000);
+});
+
+// Handle server close to clear the interval
+server.on('close', () => {
+  clearInterval(healthCheckInterval);
 });
