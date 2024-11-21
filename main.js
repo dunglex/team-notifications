@@ -60,6 +60,20 @@ function onPrCreated(req, res) {
         }
       }
 
+      let title = message.resource.title
+      .replace(/\\/g, '\\\\')
+      .replace(/"/g, '\\"')
+      .replace(/\n/g, '\\n')
+      .replace(/\r/g, '\\r')
+      .replace(/\t/g, '\\t');
+
+      let description = message.resource.description
+      .replace(/\\/g, '\\\\')
+      .replace(/"/g, '\\"')
+      .replace(/\n/g, '\\n')
+      .replace(/\r/g, '\\r')
+      .replace(/\t/g, '\\t');
+
       // Prepare the message to send to the webhook
       const webhookRequestBody = JSON.stringify({
         type: "message",
@@ -74,8 +88,8 @@ function onPrCreated(req, res) {
               body: [
                 {
                   type: "TextBlock",
-                  title: `${message.resource.title}`,
-                  text: `${message.resource.description}`,
+                  title: `${title}`,
+                  text: `${description}`,
                   url: `${url}`,
                   jiraUrl: `${jiraUrl}`,
                   srcBranch: `${srcBranch}`,
