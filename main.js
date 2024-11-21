@@ -4,8 +4,6 @@ const url = require("url");
 const fs = require("fs");
 const path = require("path");
 
-let healthCheckInterval;
-
 function loadEnv(filePath) {
   const envPath = path.resolve(filePath);
   const envContent = fs.readFileSync(envPath, "utf-8");
@@ -61,18 +59,18 @@ function onPrCreated(req, res) {
       }
 
       let title = message.resource.title
-      .replace(/\\/g, '\\\\')
-      .replace(/"/g, '\\"')
-      .replace(/\n/g, '\\n')
-      .replace(/\r/g, '\\r')
-      .replace(/\t/g, '\\t');
+        .replace(/\\/g, "\\\\")
+        .replace(/"/g, '\\"')
+        .replace(/\n/g, "\\n")
+        .replace(/\r/g, "\\r")
+        .replace(/\t/g, "\\t");
 
       let description = message.resource.description
-      .replace(/\\/g, '\\\\')
-      .replace(/"/g, '\\"')
-      .replace(/\n/g, '\\n')
-      .replace(/\r/g, '\\r')
-      .replace(/\t/g, '\\t');
+        .replace(/\\/g, "\\\\")
+        .replace(/"/g, '\\"')
+        .replace(/\n/g, "\\n")
+        .replace(/\r/g, "\\r")
+        .replace(/\t/g, "\\t");
 
       // Prepare the message to send to the webhook
       const webhookRequestBody = JSON.stringify({
@@ -125,9 +123,9 @@ function onPrCreated(req, res) {
 
 // Function to perform self health check
 function selfHealthCheck() {
-  https
+  protocol
     .get(process.env.HEALTH_CHECK_URL, (res) => {
-      // do not thing
+      // do nothing
     })
     .on("error", (e) => {
       console.error(`Health check failed: ${e.message}`);
@@ -139,6 +137,9 @@ function selfHealthCheck() {
 if (fs.existsSync(".env")) {
   loadEnv(".env");
 }
+
+const parsedUrl = url.parse(process.env.HEALTH_CHECK_URL);
+const protocol = parsedUrl.protocol === "https:" ? https : http;
 
 // Create the web server
 const server = http.createServer((req, res) => {
@@ -155,13 +156,14 @@ const server = http.createServer((req, res) => {
   }
 });
 
+const healthCheckInterval = setInterval(selfHealthCheck, parseInt(process.env.HEALTH_CHECK_INTERVAL_SECONDS) * 1000 || 30000);
+
 // Start the server
 server.listen(process.env.PORT || 3978, () => {
   console.log(`Server started on port ${server.address().port}`);
-  healthCheckInterval = setInterval(selfHealthCheck, parseInt(process.env.HEALTH_CHECK_INTERVAL_SECONDS) * 1000 || 30000);
 });
 
 // Handle server close to clear the interval
-server.on('close', () => {
+server.on("close", () => {
   clearInterval(healthCheckInterval);
 });
