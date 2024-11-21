@@ -1,4 +1,5 @@
 Content-expression: first(first(triggerBody()?['attachments'])?['content']?['body'])
+
 Schema:
 {
     "type": "object",
