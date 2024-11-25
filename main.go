@@ -10,23 +10,30 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
-var config Config
+type Appplication struct {
+	Config *AppConfig
+	WebApp *fiber.App
+}
 
-func main() {
-	var config, err = LoadConfig()
+var app Appplication
+
+func init() {
+	var err = app.Config.LoadConfig()
 	if err != nil {
 		log.Fatalf("Error loading config: %v", err)
 	}
+	app.WebApp = fiber.New()
+}
 
-	app := fiber.New()
+func main() {
 
-	app.Post("/pr/created", prCreatedHandler) // Endpoint for handling new pull request notifications
-	app.Get("/healthz", healthCheckHandler)   // Endpoint for health checks
+	app.WebApp.Post("/pr/created", prCreatedHandler) // Endpoint for handling new pull request notifications
+	app.WebApp.Get("/healthz", healthCheckHandler)   // Endpoint for health checks
 
 	go periodicHealthCheck() // Start the periodic health check
 
-	fmt.Printf("Server is running on port %s\n", config.Port)
-	app.Listen(fmt.Sprintf(":%s", config.Port))
+	fmt.Printf("Server is running on port %s\n", app.Config.Port)
+	app.WebApp.Listen(fmt.Sprintf(":%s", app.Config.Port))
 }
 
 func prCreatedHandler(c *fiber.Ctx) error {
@@ -49,7 +56,7 @@ func prCreatedHandler(c *fiber.Ctx) error {
 	card := pr.CreateAdaptiveCard()
 
 	// Send the Adaptive Card to the Power Automate webhook URL
-	card.sendAdaptiveCard(config.WebhookURL, true)
+	card.sendAdaptiveCard(app.Config.WebhookURL, true)
 
 	return c.Status(fiber.StatusCreated).SendString("New pull request has notification has been sent to power automate")
 }
@@ -59,7 +66,7 @@ func healthCheckHandler(c *fiber.Ctx) error {
 }
 
 func selfHealthCheck() {
-	resp, err := http.Get(config.HealthCheckURL)
+	resp, err := http.Get(app.Config.HealthCheckURL)
 	if err != nil {
 		log.Printf("Health check failed: %v", err)
 		return
@@ -74,7 +81,7 @@ func selfHealthCheck() {
 }
 
 func periodicHealthCheck() {
-	ticker := time.NewTicker(time.Duration(config.HealthCheckInterval) * time.Second)
+	ticker := time.NewTicker(time.Duration(app.Config.HealthCheckInterval) * time.Second)
 	defer ticker.Stop()
 
 	for range ticker.C {
