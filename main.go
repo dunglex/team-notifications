@@ -11,8 +11,9 @@ import (
 )
 
 type Appplication struct {
-	Config *AppConfig
-	WebApp *fiber.App
+	Config            *AppConfig
+	WebApp            *fiber.App
+	SelfHealthChecker *time.Ticker
 }
 
 var app Appplication
@@ -23,6 +24,7 @@ func init() {
 		log.Fatalf("Error loading config: %v", err)
 	}
 	app.WebApp = fiber.New()
+	app.SelfHealthChecker = time.NewTicker(time.Duration(app.Config.HealthCheckInterval) * time.Second)
 }
 
 func main() {
@@ -30,7 +32,7 @@ func main() {
 	app.WebApp.Post("/pr/created", prCreatedHandler) // Endpoint for handling new pull request notifications
 	app.WebApp.Get("/healthz", healthCheckHandler)   // Endpoint for health checks
 
-	go periodicHealthCheck() // Start the periodic health check
+	go app.StartSelfHealthCheck() // Start the periodic health check
 
 	fmt.Printf("Server is running on port %s\n", app.Config.Port)
 	app.WebApp.Listen(fmt.Sprintf(":%s", app.Config.Port))
@@ -80,11 +82,10 @@ func selfHealthCheck() {
 	}
 }
 
-func periodicHealthCheck() {
-	ticker := time.NewTicker(time.Duration(app.Config.HealthCheckInterval) * time.Second)
-	defer ticker.Stop()
+func (app *Appplication) StartSelfHealthCheck() {
+	defer app.SelfHealthChecker.Stop()
 
-	for range ticker.C {
+	for range app.SelfHealthChecker.C {
 		selfHealthCheck()
 	}
 }
