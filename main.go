@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
@@ -22,6 +23,7 @@ func init() {
 	var err = app.Config.LoadConfig()
 	if err != nil {
 		log.Fatalf("Error loading config: %v", err)
+		os.Exit(1)
 	}
 	app.WebApp = fiber.New()
 	app.SelfHealthChecker = time.NewTicker(time.Duration(app.Config.HealthCheckInterval) * time.Second)
