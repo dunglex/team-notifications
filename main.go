@@ -20,12 +20,24 @@ type Appplication struct {
 var app Appplication
 
 func init() {
+	// Load the config
+	app.Config = &AppConfig{}
 	var err = app.Config.LoadConfig()
 	if err != nil {
 		log.Fatalf("Error loading config: %v", err)
 		os.Exit(1)
 	}
+
+	// Print the config to the console
+	fmt.Println("WebhookURL:" + app.Config.WebhookURL)
+	fmt.Println("HealthCheckURL:" + app.Config.HealthCheckURL)
+	fmt.Println("HealthCheckInterval:", app.Config.HealthCheckInterval)
+	fmt.Println("Port:" + app.Config.Port)
+
+	// Initialize the Fiber app
 	app.WebApp = fiber.New()
+
+	// Init the self health checker
 	app.SelfHealthChecker = time.NewTicker(time.Duration(app.Config.HealthCheckInterval) * time.Second)
 }
 

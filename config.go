@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strconv"
 
 	"github.com/spf13/viper"
 )
@@ -17,17 +18,18 @@ type AppConfig struct {
 
 func (config *AppConfig) LoadConfig() error {
 	// read from environment variables
-	viper.SetEnvPrefix("")
-	viper.AutomaticEnv()
-	config = &AppConfig{
-		WebhookURL:          viper.GetString("WEBHOOK_URL"),
-		HealthCheckURL:      viper.GetString("HEALTH_CHECK_URL"),
-		HealthCheckInterval: viper.GetUint("HEALTH_CHECK_INTERVAL_SECONDS"),
-		Port:                viper.GetString("PORT"),
+	config.WebhookURL = os.Getenv("WEBHOOK_URL")
+	config.HealthCheckURL = os.Getenv("HEALTH_CHECK_URL")
+	interval, err := strconv.ParseUint(os.Getenv("HEALTH_CHECK_INTERVAL_SECONDS"), 0, 32)
+	if err != nil {
+		return fmt.Errorf("invalid HEALTH_CHECK_INTERVAL_SECONDS: %v", err)
 	}
+	config.HealthCheckInterval = uint(interval)
+	config.Port = os.Getenv("PORT")
 
 	// if .env exists, read from it
 	if _, err := os.Stat(".env"); err == nil {
+		fmt.Println("Reading from .env file")
 		viper.SetConfigFile(".env")
 		viper.AutomaticEnv()
 		if err := viper.ReadInConfig(); err != nil {
