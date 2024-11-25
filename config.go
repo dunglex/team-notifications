@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"os"
 
 	"github.com/spf13/viper"
 )
@@ -14,8 +15,11 @@ type Config struct {
 }
 
 func LoadConfig() (Config, error) {
+	// if .env exists, read from it
+	if _, err := os.Stat(".env"); err == nil {
+		viper.SetConfigFile(".env")
+	}
 
-	viper.SetConfigFile(".env")
 	viper.AutomaticEnv()
 
 	if err := viper.ReadInConfig(); err != nil {
