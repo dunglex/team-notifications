@@ -8,30 +8,44 @@ import (
 )
 
 type AdaptiveCardRequest struct {
-	Type        string         `json:"type"`
-	Attachments []AdaptiveCard `json:"attachments"`
+	Type        string                   `json:"type"`
+	Attachments []AdaptiveCardAttachment `json:"attachments"`
+}
+
+type AdaptiveCardAttachment struct {
+	ContentType string         `json:"contentType"`
+	ContentUrl  *string        `json:"contentUrl"`
+	Content     []AdaptiveCard `json:"content"`
 }
 
 type AdaptiveCard struct {
+	Schema  string             `json:"$schema"`
 	Type    string             `json:"type"`
 	Version string             `json:"version"`
 	Body    []AdaptiveCardBody `json:"body"`
 }
 
 type AdaptiveCardBody struct {
-	Type     string `json:"type"`
-	Text     string `json:"text"`
-	Wrap     bool   `json:"wrap,omitempty"`
-	Size     string `json:"size,omitempty"`
-	Weight   string `json:"weight,omitempty"`
-	Spacing  string `json:"spacing,omitempty"`
-	IsSubtle bool   `json:"isSubtle,omitempty"`
+	Type           string `json:"type"`
+	Title          string `json:"title"`
+	Text           string `json:"text"`
+	Url            string `json:"url"`
+	JiraUrl        string `json:"jiraUrl"`
+	SourceBranch   string `json:"srcBranch"`
+	TargetBranch   string `json:"targetBranch"`
+	RepositoryName string `json:"repository"`
+	Author         string `json:"author"`
 }
 
 func (card *AdaptiveCard) sendAdaptiveCard(webhookUrl string, dumpJson bool) error {
+	var attachment = AdaptiveCardAttachment{
+		ContentType: "application/vnd.microsoft.card.adaptive",
+		Content:     []AdaptiveCard{*card},
+	}
+
 	var request = AdaptiveCardRequest{
 		Type:        "message",
-		Attachments: []AdaptiveCard{*card},
+		Attachments: []AdaptiveCardAttachment{attachment},
 	}
 
 	payloadBytes, err := json.Marshal(request)

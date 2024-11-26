@@ -1,6 +1,7 @@
 package main
 
 import (
+	"strconv"
 	"strings"
 	"time"
 )
@@ -21,8 +22,8 @@ type PrCreatedRequest struct {
 
 type Resource struct {
 	Repository            Repository                 `json:"repository"`
-	PullRequestID         int64                      `json:"pullRequestId"`
-	CodeReviewID          int64                      `json:"codeReviewId"`
+	PullRequestID         int                        `json:"pullRequestId"`
+	CodeReviewID          int                        `json:"codeReviewId"`
 	Status                string                     `json:"status"`
 	CreatedBy             CreatedBy                  `json:"createdBy"`
 	CreationDate          time.Time                  `json:"creationDate"`
@@ -134,29 +135,75 @@ type Account struct {
 }
 
 func (payload *PrCreatedRequest) ToPullRequest() PullRequest {
-	resource := payload.Resource
-	repository := resource.Repository
+	extractSrcBranch := func() string {
+		var srcBranch string = payload.Resource.SourceRefName
+		srcBranch = strings.TrimSpace(srcBranch)
+		return strings.Replace(srcBranch, "refs/heads/", "", 1)
+	}
+
+	extractTargetBranch := func() string {
+		var targetBranch string = payload.Resource.TargetRefName
+		targetBranch = strings.TrimSpace(targetBranch)
+		return strings.Replace(targetBranch, "refs/heads/", "", 1)
+	}
+
+	extractRepositoryName := func() string {
+		var repositoryName string = payload.Resource.Repository.Name
+		return strings.TrimSpace(repositoryName)
+	}
+
+	extractAuthor := func() string {
+		var author string = payload.Resource.CreatedBy.DisplayName
+		return strings.TrimSpace(author)
+	}
+
+	extractPullRequestURL := func() string {
+		return payload.Resource.Repository.WebURL + "/pullrequest/" + strconv.Itoa(payload.Resource.PullRequestID)
+	}
+
+	extractJiraURL := func() string {
+		// try to get jiraurl from description
+		var description string = payload.Resource.Description
+		index := strings.Index(description, "https://sd.homecredit.vn")
+		if index != -1 {
+			return description[index:]
+		}
+		// if jiraurl is in description then take it from srcBranch if it starts with HRDIGI-xxx
+		if strings.HasPrefix(extractSrcBranch(), "HRDIGI-") {
+			return "https://sd.homecredit.vn/browse/" + extractSrcBranch()
+		}
+		// no data, return empty string
+		return ""
+	}
+
+	extractTitle := func() string {
+		var title string = payload.Resource.Title
+		title = strings.ReplaceAll(title, "\\", "\\\\")
+		title = strings.ReplaceAll(title, "\"", "\\\"")
+		title = strings.ReplaceAll(title, "\n", "\\n")
+		title = strings.ReplaceAll(title, "\r", "\\r")
+		title = strings.ReplaceAll(title, "\t", "\\t")
+		return strings.TrimSpace(title)
+	}
+
+	extractDescription := func() string {
+		var title string = payload.Resource.Description
+		title = strings.ReplaceAll(title, "\\", "\\\\")
+		title = strings.ReplaceAll(title, "\"", "\\\"")
+		title = strings.ReplaceAll(title, "\n", "\\n")
+		title = strings.ReplaceAll(title, "\r", "\\r")
+		title = strings.ReplaceAll(title, "\t", "\\t")
+		return strings.TrimSpace(title)
+	}
 
 	return PullRequest{
-		SrcBranch:      cleanString(resource.SourceRefName),
-		TargetBranch:   cleanString(resource.TargetRefName),
-		RepositoryName: cleanString(repository.Name),
-		Author:         cleanString(resource.CreatedBy.DisplayName),
-		PullRequestURL: cleanString(resource.CreationDate.String()),
-		JiraURL:        extractJiraURL(resource.Description),
-		Title:          cleanString(resource.Title),
-		Description:    cleanString(resource.Description),
+		SrcBranch:      extractSrcBranch(),
+		TargetBranch:   extractTargetBranch(),
+		RepositoryName: extractRepositoryName(),
+		Author:         extractAuthor(),
+		PullRequestURL: extractPullRequestURL(),
+		JiraURL:        extractJiraURL(),
+		Title:          extractTitle(),
+		Description:    extractDescription(),
 	}
-}
-
-func cleanString(s string) string {
-	return strings.TrimSpace(s)
-}
-
-func extractJiraURL(description string) string {
-	index := strings.Index(description, "https://sd.homecredit.vn")
-	if index != -1 {
-		return description[index:]
-	}
-	return ""
 }

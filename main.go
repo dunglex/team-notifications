@@ -63,6 +63,7 @@ func prCreatedHandler(c *fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
+
 	log.Printf("Received new pull request notification: %v", string(requestBytes))
 
 	// Convert the payload to a PullRequest object

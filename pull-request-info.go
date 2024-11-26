@@ -1,7 +1,5 @@
 package main
 
-import "fmt"
-
 type PullRequest struct {
 	SrcBranch      string `json:"sourceRefName"`
 	TargetBranch   string `json:"targetRefName"`
@@ -15,49 +13,20 @@ type PullRequest struct {
 
 func (pr *PullRequest) CreateAdaptiveCard() AdaptiveCard {
 	return AdaptiveCard{
+		Schema:  "http://adaptivecards.io/schemas/adaptive-card.json",
 		Type:    "AdaptiveCard",
 		Version: "1.2",
 		Body: []AdaptiveCardBody{
 			{
-				Type:   "TextBlock",
-				Text:   fmt.Sprintf("New Pull Request Created by %s", pr.Author),
-				Size:   "Large",
-				Weight: "Bolder",
-			},
-			{
-				Type: "TextBlock",
-				Text: fmt.Sprintf("Title: %s", pr.Title),
-				Wrap: true,
-			},
-			{
-				Type: "TextBlock",
-				Text: fmt.Sprintf("Description: %s", pr.Description),
-				Wrap: true,
-			},
-			{
-				Type: "TextBlock",
-				Text: fmt.Sprintf("Source Branch: %s", pr.SrcBranch),
-				Wrap: true,
-			},
-			{
-				Type: "TextBlock",
-				Text: fmt.Sprintf("Target Branch: %s", pr.TargetBranch),
-				Wrap: true,
-			},
-			{
-				Type: "TextBlock",
-				Text: fmt.Sprintf("Repository: %s", pr.RepositoryName),
-				Wrap: true,
-			},
-			{
-				Type: "TextBlock",
-				Text: fmt.Sprintf("Pull Request URL: %s", pr.PullRequestURL),
-				Wrap: true,
-			},
-			{
-				Type: "TextBlock",
-				Text: fmt.Sprintf("JIRA URL: %s", pr.JiraURL),
-				Wrap: true,
+				Type:           "TextBlock",
+				Title:          pr.Title,
+				Text:           pr.Author,
+				Url:            pr.PullRequestURL,
+				JiraUrl:        pr.JiraURL,
+				SourceBranch:   pr.SrcBranch,
+				TargetBranch:   pr.TargetBranch,
+				RepositoryName: pr.RepositoryName,
+				Author:         pr.Author,
 			},
 		},
 	}
