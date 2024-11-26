@@ -13,9 +13,9 @@ type AdaptiveCardRequest struct {
 }
 
 type AdaptiveCardAttachment struct {
-	ContentType string         `json:"contentType"`
-	ContentUrl  *string        `json:"contentUrl"`
-	Content     []AdaptiveCard `json:"content"`
+	ContentType string       `json:"contentType"`
+	ContentUrl  *string      `json:"contentUrl"`
+	Content     AdaptiveCard `json:"content"`
 }
 
 type AdaptiveCard struct {
@@ -40,7 +40,8 @@ type AdaptiveCardBody struct {
 func (card *AdaptiveCard) sendAdaptiveCard(webhookUrl string, dumpJson bool) error {
 	var attachment = AdaptiveCardAttachment{
 		ContentType: "application/vnd.microsoft.card.adaptive",
-		Content:     []AdaptiveCard{*card},
+		ContentUrl:  nil,
+		Content:     *card,
 	}
 
 	var request = AdaptiveCardRequest{
